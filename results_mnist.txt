@@ -1,0 +1,4 @@
+MNIST CNN Classification Results
+================================
+Test Accuracy: 0.9878
+Test Loss: 0.0393

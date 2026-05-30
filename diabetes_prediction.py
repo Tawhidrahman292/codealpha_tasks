@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -12,7 +14,6 @@ columns = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin",
 data = pd.read_csv(url, names=columns)
 
 print("✔ Dataset Loaded Successfully")
-print(data.head())
 
 # Split features and labels
 X = data.drop("Outcome", axis=1)
@@ -39,8 +40,23 @@ print("Precision:", precision_score(y_test, y_pred))
 print("Recall:", recall_score(y_test, y_pred))
 print("F1-Score:", f1_score(y_test, y_pred))
 
-print("\nConfusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
+# Save Confusion Matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='Blues')
+plt.title('Confusion Matrix - Diabetes Prediction')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.savefig('diabetes_confusion_matrix.png')
+print("✔ Confusion matrix saved as diabetes_confusion_matrix.png")
 
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
+with open("results_diabetes.txt", "w") as f:
+    f.write("Diabetes Prediction Results\n")
+    f.write("===========================\n")
+    f.write(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}\n")
+    f.write(f"Precision: {precision_score(y_test, y_pred):.4f}\n")
+    f.write(f"Recall: {recall_score(y_test, y_pred):.4f}\n")
+    f.write(f"F1-Score: {f1_score(y_test, y_pred):.4f}\n")
+    f.write("\nClassification Report:\n")
+    f.write(classification_report(y_test, y_pred))
+
+print("✔ Results saved to results_diabetes.txt")

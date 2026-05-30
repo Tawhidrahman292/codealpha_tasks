@@ -1,21 +1,16 @@
-# mnist_cnn.py
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 import numpy as np
 import matplotlib.pyplot as plt
 
-# -----------------------------
-# Step 1 — Load MNIST dataset
-# -----------------------------
+# Load MNIST dataset
 (x_train, y_train), (x_test, y_test) = datasets.mnist.load_data()
 
 # Normalize the images
 x_train = x_train.reshape((60000, 28, 28, 1)) / 255.0
 x_test = x_test.reshape((10000, 28, 28, 1)) / 255.0
 
-# -----------------------------
-# Step 2 — Build CNN model
-# -----------------------------
+# Build CNN model
 model = models.Sequential([
     layers.Input(shape=(28,28,1)),
     layers.Conv2D(32, (3,3), activation='relu'),
@@ -32,40 +27,47 @@ model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-# -----------------------------
-# Step 3 — Train the model
-# -----------------------------
+# Train the model
 history = model.fit(x_train, y_train, epochs=3, validation_split=0.1)
 
-# -----------------------------
-# Step 4 — Evaluate on test data
-# -----------------------------
+# Evaluate
 test_loss, test_acc = model.evaluate(x_test, y_test)
 print(f"Test accuracy: {test_acc}")
 
-# -----------------------------
-# Step 5 — Visualize predictions
-# -----------------------------
+# Save Accuracy Plot
+plt.figure(figsize=(8, 6))
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.title('Training and Validation Accuracy')
+plt.savefig('mnist_accuracy_plot.png')
+print("✔ Accuracy plot saved as mnist_accuracy_plot.png")
+
+# Save Predictions Sample
 prob_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
 predictions = prob_model.predict(x_test)
 
-def plot_image(i, predictions_array, true_label, img):
-    predictions_array, true_label, img = predictions_array[i], true_label[i], img[i].reshape(28,28)
-    plt.grid(False)
+plt.figure(figsize=(10, 4))
+for i in range(5):
+    plt.subplot(1, 5, i+1)
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(img, cmap=plt.cm.binary)
-    predicted_label = np.argmax(predictions_array)
-    color = 'green' if predicted_label == true_label else 'red'
-    plt.xlabel(f"{predicted_label} ({true_label})", color=color)
-    plt.show()
+    plt.grid(False)
+    plt.imshow(x_test[i].reshape(28, 28), cmap=plt.cm.binary)
+    predicted_label = np.argmax(predictions[i])
+    color = 'green' if predicted_label == y_test[i] else 'red'
+    plt.xlabel(f"Pred: {predicted_label}\nTrue: {y_test[i]}", color=color)
+plt.tight_layout()
+plt.savefig('mnist_predictions_sample.png')
+print("✔ Predictions sample saved as mnist_predictions_sample.png")
 
-# Plot first 5 test images with predictions
-for i in range(5):
-    plot_image(i, predictions, y_test, x_test)
+with open("results_mnist.txt", "w") as f:
+    f.write("MNIST CNN Classification Results\n")
+    f.write("================================\n")
+    f.write(f"Test Accuracy: {test_acc:.4f}\n")
+    f.write(f"Test Loss: {test_loss:.4f}\n")
 
-# -----------------------------
-# Step 6 — Save the trained model
-# -----------------------------
-model.save("mnist_cnn_model.h5")
-print("Model saved as mnist_cnn_model.h5")
+print("✔ Results saved to results_mnist.txt")
